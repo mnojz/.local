@@ -1,21 +1,19 @@
 #!/usr/bin/env bash
 
-STATE_FILE="$HOME/.local/state/touchpad_toggle"
-DEVICE="elan0307:00-04f3:3282-touchpad"
+TOUCHPAD="elan0307:00-04f3:3282-touchpad"
+STATE_FILE="$HOME/.cache/touchpad_state"
 
-# Create state file if missing
-if [ ! -f "$STATE_FILE" ]; then
-    echo "true" > "$STATE_FILE"
-fi
+# init if missing
+[ -f "$STATE_FILE" ] || echo "1" > "$STATE_FILE"
 
-CURRENT=$(cat "$STATE_FILE")
+STATE=$(cat "$STATE_FILE")
 
-if [ "$CURRENT" = "true" ]; then
-    hyprctl keyword "device[$DEVICE]:enabled=false"
-    echo "false" > "$STATE_FILE"
-    notify-send "Touchpad Disabled"
+if [ "$STATE" = "1" ]; then
+    hyprctl keyword "device[$TOUCHPAD]:enabled 0"
+    echo "0" > "$STATE_FILE"
+    notify-send "Touchpad disabled"
 else
-    hyprctl keyword "device[$DEVICE]:enabled=true"
-    echo "true" > "$STATE_FILE"
-    notify-send "Touchpad Enabled"
+    hyprctl keyword "device[$TOUCHPAD]:enabled 1"
+    echo "1" > "$STATE_FILE"
+    notify-send "Touchpad enabled"
 fi

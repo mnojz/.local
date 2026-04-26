@@ -1,25 +1,26 @@
 #!/usr/bin/env bash
 
-STATE_FILE="$HOME/.local/state/refresh_mode"
 MONITOR="eDP-1"
 
-# Read current mode
-if [ ! -f "$STATE_FILE" ]; then
-    echo "0" > "$STATE_FILE"
-fi
-MODE=$(cat "$STATE_FILE")
+# Extract current refresh rate (integer part only)
+RATE=$(hyprctl monitors | awk -v mon="$MONITOR" '
+    $0 ~ "Monitor " mon {
+        getline
+        if (match($0, /@([0-9]+)/, arr)) {
+            print arr[1]
+        }
+    }
+')
 
-# Toggle mode
-if [ "$MODE" = "0" ]; then
-    RATE=144
-    echo "1" > "$STATE_FILE"
+# Decide next rate
+if [ "$RATE" -ge 100 ]; then
+    NEW_RATE=60
 else
-    RATE=60
-    echo "0" > "$STATE_FILE"
+    NEW_RATE=144
 fi
 
-# Apply refresh rate
-hyprctl keyword "monitor $MONITOR,1920x1080@${RATE},0x0,1"
+# Apply
+hyprctl keyword "monitor $MONITOR,1920x1080@${NEW_RATE},0x0,1"
 
 # Notify
-notify-send "Refresh rate: ${RATE}Hz"
+notify-send "Refresh rate: ${NEW_RATE}Hz"
